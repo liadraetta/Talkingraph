@@ -1,0 +1,10 @@
+progetto:
+  name: wlkg
+  endpoint: https://kgccc.di.unito.it/sparql/wl-kg
+  namespace: 
+    left:
+      autori: urw:Person 
+    right:
+      libri: urw:wasAttributedTo
+  prefix: 
+    urw: <https://purl.archive.org/urwriters#> 
