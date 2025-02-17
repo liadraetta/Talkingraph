@@ -1,6 +1,17 @@
 import requests
 from fastapi import FastAPI, HTTPException, Query, APIRouter
 from SPARQLWrapper import SPARQLWrapper, JSON
+import yaml
+import os
+from routers.schemas import SearchResponse
+
+# Ottieni il percorso assoluto basato sulla posizione attuale
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+CONFIG_PATH = os.path.join(BASE_DIR, "config.yml")
+
+def load_config(filepath: str = CONFIG_PATH):
+    with open(filepath, "r") as file:
+        return yaml.safe_load(file)  # Carica i dati YAML in un dizionario
 
 router = APIRouter(
     prefix="/router",
@@ -8,103 +19,19 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+
+# Carica la configurazione
+config = load_config()
 # Configura endpoint 
-SPARQL_ENDPOINT = "https://kgccc.di.unito.it/sparql/wl-kg"
-
-@router.get("/query1")
-def execute_sparql_query():
-    sparql = get_example_query()
-    headers = {
-        "Accept": "application/json",
-        "Content-Type": "application/x-www-form-urlencoded"
-    }
-    data = {
-        "query": sparql
-    }
-    
-    try:
-        response = requests.post(SPARQL_ENDPOINT, data=data, headers=headers)
-        print("SPARQL Response:", response.text)  # Debug della risposta
-
-        response.raise_for_status()
-        data = response.json()
-    except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=500, detail=f"Errore nella richiesta SPARQL: {str(e)}")
-    except ValueError:
-        raise HTTPException(status_code=500, detail="Errore nel parsing della risposta SPARQL")
-
-    return data
-
-# Query di esempio 
-def get_example_query():
-    example_query = """
-  PREFIX : <https://purl.archive.org/urwriters#>
-PREFIX urb: <https://purl.archive.org/urbooks#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-
-SELECT DISTINCT ?book ?bookTitle WHERE { 
-  ?book urb:wasWrittenBy ?author .
-  ?book rdfs:label ?bookTitle .
-  ?author rdfs:label ?authorName .
-  
-  FILTER(LCASE(?authorName) = "orwell")  
-} 
-LIMIT 10
-
-    """
-    return example_query
+SPARQL_ENDPOINT = config["progetto"]["endpoint"]
 
 
-@router.get("/query2")
-def execute_sparql_query():
-    sparql = get_example_query2()
-    headers = {
-        "Accept": "application/json",
-        "Content-Type": "application/x-www-form-urlencoded"
-    }
-    data = {
-        "query": sparql
-    }
-    
-    try:
-        response = requests.post(SPARQL_ENDPOINT, data=data, headers=headers)
-        print("SPARQL Response:", response.text)  # Debug della risposta
-
-        response.raise_for_status()
-        data = response.json()
-    except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=500, detail=f"Errore nella richiesta SPARQL: {str(e)}")
-    except ValueError:
-        raise HTTPException(status_code=500, detail="Errore nel parsing della risposta SPARQL")
-
-    return data
-
-# Query di esempio 
-def get_example_query2():
-    example_query = """
-  prefix :<https://purl.archive.org/urwriters#>
-
-    prefix urw:<https://purl.archive.org/urwriters#>
-
-    prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#>
-
-    prefix geo:<http://www.w3.org/2003/01/geo/wgs84_pos#>
-
-
-    select distinct ?work ?name where {?w urw:wasAttributedTo ?pl. ?w rdfs:label ?work.  ?pl rdfs:label ?name.
-
-} limit 10
-
-    """
-    return example_query
-
-@router.get("/search")
-def search(label: str):
+@router.get("/search", response_model=SearchResponse)
+def search(label: str) -> SearchResponse:
     sparql = SPARQLWrapper(SPARQL_ENDPOINT)
     
     query = f"""
     PREFIX : <https://purl.archive.org/urwriters#>
-    PREFIX urb: <https://purl.archive.org/urbooks#>
     PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
     
     SELECT DISTINCT ?name ?titolo WHERE {{
