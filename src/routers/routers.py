@@ -5,6 +5,7 @@ import yaml
 import os
 from routers.schemas import SearchResponse
 
+#todo aggiungere config tramite file config.py
 # Ottieni il percorso assoluto basato sulla posizione attuale
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 CONFIG_PATH = os.path.join(BASE_DIR, "config.yml")
@@ -23,7 +24,7 @@ router = APIRouter(
 # Carica la configurazione
 config = load_config()
 # Configura endpoint 
-SPARQL_ENDPOINT = config["progetto"]["endpoint"]
+SPARQL_ENDPOINT = config["app"]["endpoint"]
 
 
 @router.get("/search", response_model=SearchResponse)
@@ -31,18 +32,19 @@ def search(label: str) -> SearchResponse:
     sparql = SPARQLWrapper(SPARQL_ENDPOINT)
     
     query = f"""
-    PREFIX : <https://purl.archive.org/urwriters#>
+    PREFIX urw: {config["app"]["prefix"]["urw"]}  
     PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
     
     SELECT DISTINCT ?name ?titolo WHERE {{
-      ?author :wasAttributedTo ?books.
+      ?author {config["app"]["namespace"]["right"]["libri"]} ?books.
       ?books rdfs:label ?titolo.
       ?author rdfs:label ?name.
       
       FILTER(regex(?titolo, "{label}", "i") || regex(?name, "{label}", "i"))
     }}
+    LIMIT 10
     """
-    
+    print(query)
     sparql.setQuery(query)
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()

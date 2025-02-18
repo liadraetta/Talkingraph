@@ -1,10 +1,10 @@
-progetto:
+app:
   name: wlkg
   endpoint: https://kgccc.di.unito.it/sparql/wl-kg
   namespace: 
     left:
-      autori: urw:Person 
+      entità1: urw:Person 
     right:
-      libri: urw:wasAttributedTo
+      entità1: urw:wasAttributedTo
   prefix: 
     urw: <https://purl.archive.org/urwriters#> 
