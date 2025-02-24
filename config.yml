@@ -3,8 +3,16 @@ app:
   endpoint: https://kgccc.di.unito.it/sparql/wl-kg
   namespace: 
     left:
-      entità1: urw:Person 
+      entitytype: urw:Person 
     right:
-      entità1: urw:wasAttributedTo
+      entità1:
+        label: book
+        rel: urw:wasAttributedTo
+      entità2:
+        label: publisher
+        rel: urw:wasPublishedBy
+      entità3:
+        label: language
+        rel: urw:publishingLanguage
   prefix: 
     urw: <https://purl.archive.org/urwriters#> 
