@@ -14,5 +14,8 @@ app:
       entità3:
         label: language
         rel: urw:publishingLanguage
+      entità4:
+        label: wasPublishedWhen
+        rel: urw:wasPublishedWhen
   prefix: 
     urw: <https://purl.archive.org/urwriters#> 

@@ -25,7 +25,7 @@ async def root():
     return {"message": f"Benvenuto nell'API di {config.name}!"}
 
 
-@app.get("/1")
+@app.get("/data")
 async def root():
 
     return {

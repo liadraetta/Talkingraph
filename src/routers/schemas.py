@@ -1,5 +1,5 @@
 #qui metto classi per field e base model per validazione parametri
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Dict
 
 from pydantic_settings import BaseSettings
@@ -14,6 +14,22 @@ class SearchResult(BaseModel):
 
 class SearchResponse(BaseModel):
     results: List[SearchResult]
+
+
+class FindResultItem(BaseModel):
+    s: str
+    sogg: str
+
+    @field_validator("s", "sogg", mode="before")
+    @classmethod
+    def extract_value(cls, v):
+        """ Estrae il valore dalla risposta SPARQL """
+        if isinstance(v, dict) and "value" in v:
+            return v["value"]
+        return v
+
+class FindResult(BaseModel):
+    results: List[FindResultItem]
 
 # Modelli Pydantic per il file YML
 class Entity(BaseModel):
