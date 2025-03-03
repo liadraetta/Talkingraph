@@ -31,16 +31,32 @@ class FindResultItem(BaseModel):
 class FindResult(BaseModel):
     results: List[FindResultItem]
 
+class SearchResultItem(BaseModel):
+    s: str
+    name: str
+
+    @field_validator("s", "name", mode="before")
+    @classmethod
+    def extract_value(cls, v):
+        """ Estrae il valore dalla risposta SPARQL """
+        if isinstance(v, dict) and "value" in v:
+            return v["value"]
+        return v
+
+class SearchResultURI(BaseModel):
+    results: List[SearchResultItem]
+
 # Modelli Pydantic per il file YML
 class Entity(BaseModel):
     label: str
     rel: str
 
-class LeftConfig(BaseModel):
-    entitytype: str  
+class EntityType(BaseModel):
+    type: str  
+    prefix: str
 
 class Namespace(BaseModel):
-    left: LeftConfig
+    left: Dict[str, EntityType]
     right: Dict[str, Entity]
 
 class Config(BaseSettings):

@@ -3,7 +3,9 @@ app:
   endpoint: https://kgccc.di.unito.it/sparql/wl-kg
   namespace: 
     left:
-      entitytype: urw:Person 
+      entitytype1: 
+        type: prov:Person 
+        prefix: "PREFIX prov: <http://www.w3.org/ns/prov#>"
     right:
       entità1:
         label: book

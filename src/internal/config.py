@@ -2,11 +2,11 @@ from typing import Dict
 from pathlib import Path
 import yaml
 import os
-from routers.schemas import Config
+from internal.schemas import Config
 
 
 # Definisco il percorso del file di configurazione
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 CONFIG_PATH = os.path.join(BASE_DIR, "config.yml")
 
 # Funzione per caricare e trasformare i dati YAML in un oggetto Pydantic
