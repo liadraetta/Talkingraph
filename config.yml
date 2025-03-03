@@ -1,10 +1,23 @@
-progetto:
+app:
   name: wlkg
   endpoint: https://kgccc.di.unito.it/sparql/wl-kg
   namespace: 
     left:
-      autori: urw:Person 
+      entitytype1: 
+        type: prov:Person 
+        prefix: "PREFIX prov: <http://www.w3.org/ns/prov#>"
     right:
-      libri: urw:wasAttributedTo
+      entità1:
+        label: book
+        rel: urw:wasAttributedTo
+      entità2:
+        label: publisher
+        rel: urw:wasPublishedBy
+      entità3:
+        label: language
+        rel: urw:publishingLanguage
+      entità4:
+        label: wasPublishedWhen
+        rel: urw:wasPublishedWhen
   prefix: 
     urw: <https://purl.archive.org/urwriters#> 
