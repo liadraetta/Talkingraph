@@ -5,6 +5,7 @@ import yaml
 import os
 from internal.schemas import SearchResponse, FindResult, SearchResultURI
 from internal.config import config as config 
+from internal.scripts import predict_NuExtract
 
 
 query = APIRouter(
@@ -196,3 +197,12 @@ def search(entitytype: str) -> SearchResultURI:
     formatted_results = [{"s": item["s"], "name": item["name"]} for item in bindings]
 
     return {"results": formatted_results}
+
+@query.get("/graphrag")
+def retrieve(prompt:str,template: dict):
+
+    result = predict_NuExtract(prompt,template)
+
+    return result
+
+    
