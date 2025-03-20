@@ -3,6 +3,7 @@ import os
 from fastapi import FastAPI
 from routers.query import query as query_router 
 from internal.config import config as config
+import uvicorn
 
 
 
@@ -36,3 +37,7 @@ async def root():
         "prefix": config.prefix["urw"]
     }
 
+
+
+if __name__ == "__main__":
+        uvicorn.run(app, host="0.0.0.0", port=8000)

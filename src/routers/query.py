@@ -2,10 +2,12 @@ import requests
 from fastapi import FastAPI, HTTPException, Query, APIRouter
 from SPARQLWrapper import SPARQLWrapper, JSON
 import yaml
-import os
+import os,json
 from internal.schemas import SearchResponse, FindResult, SearchResultURI
 from internal.config import config as config 
-from internal.scripts import predict_NuExtract
+from scripts.retrieval import Retriever
+
+retriever = Retriever()
 
 
 query = APIRouter(
@@ -199,10 +201,63 @@ def search(entitytype: str) -> SearchResultURI:
     return {"results": formatted_results}
 
 @query.get("/graphrag")
-def retrieve(prompt:str,template: dict):
+def retrieve(template:str,text:str,type:str,k:int):
+    template = eval(template)
+    my_res = []
+    result = retriever.extract_knowledge(template=template,text=text)
+    result = json.loads(result)
 
-    result = predict_NuExtract(prompt,template)
+    for res in result['entities'][type]:
 
-    return result
+        linked = retriever.link(res,type,k)
+        
+    
+        my_res.extend(linked)
+
+    results = search(1,f"urw:{my_res[0][0]['entity']}")
+    return results
+
+def search(rel: str, o: str) -> FindResult:
+    sparql = SPARQLWrapper(SPARQL_ENDPOINT)
+    
+    # Controllo se il prefisso urw è disponibile
+    urw_prefix = config.prefix["urw"]
+    if not urw_prefix:
+        raise HTTPException(status_code=500, detail="Prefix is missing in configuration")
+
+    
+    entity_key = f"entità{rel}"  # Nome chiave da cercare
+    
+    # Controllo se esiste l'entità richiesta
+    if entity_key not in config.namespace.right:
+        raise HTTPException(status_code=400, detail=f"Entity {entity_key} not found in config")
+
+    configEntity = config.namespace.right[entity_key].rel  
+
+    # Costruzione della query SPARQL con validazione
+    query = f"""
+    PREFIX urw: {urw_prefix}
+    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    
+    SELECT DISTINCT ?s, ?sogg WHERE {{
+      ?s {configEntity} {o}.
+      ?s rdfs:label ?sogg.
+      
+    }}
+    """
+    print(query)
+    try:
+        sparql.setQuery(query)
+        sparql.setReturnFormat(JSON)
+        results = sparql.query().convert()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"SPARQL Query Error: {str(e)}")
+
+    # Trasforma la risposta per Pydantic
+    bindings = results["results"]["bindings"]
+    formatted_results = [{"s": item["s"], "sogg": item["sogg"]} for item in bindings]
+
+    return {"results": formatted_results}
+
 
     
