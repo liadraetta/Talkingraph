@@ -21,3 +21,4 @@ app:
         rel: urw:wasPublishedWhen
   prefix: 
     urw: <https://purl.archive.org/urwriters#> 
+  template: "{'QuestionFocus': '', 'entities': {'work': [],'person': [], 'subject':[], 'publisher':[]}}"

@@ -64,6 +64,7 @@ class Config(BaseSettings):
     endpoint: str
     namespace: Namespace
     prefix: Dict[str, str]
+    template: str
 
 
 # Models for Information Extraction
