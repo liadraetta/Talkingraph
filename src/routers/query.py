@@ -6,7 +6,7 @@ import os,json
 from internal.schemas import SearchResponse, FindResult, SearchResultURI
 from internal.config import config as config 
 from scripts.retrieval import Retriever
-from scripts.query_construction import finder, searchExactly, searchRegex, searchTypeEntity
+from scripts.query_construction import finder, searchExactly, searchRegex, searchTypeEntity, rel, finderTemp
 
 retriever = Retriever()
 
@@ -170,3 +170,55 @@ def retrieve(text:str,type:str,k:int):
 
     results = find(1,f"urw:{my_res[0][0]['entity']}")
     return results
+
+
+@query.get("/rel")
+def relTemp(ris: str) :
+    sparql = SPARQLWrapper(SPARQL_ENDPOINT)
+    
+    # Controllo se il prefisso urw è disponibile
+    urw_prefix = config.prefix["urw"]
+    if not urw_prefix:
+        raise HTTPException(status_code=500, detail="Prefix is missing in configuration")
+     
+    ris="<"+ris+">"
+    print(ris)
+    query=rel(urw_prefix, ris)
+    
+    try:
+        sparql.setQuery(query)
+        sparql.setReturnFormat(JSON)
+        results = sparql.query().convert()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"SPARQL Query Error: {str(e)}")
+
+    # Trasforma la risposta per Pydantic
+    bindings = results["results"]["bindings"]
+    formatted_results = [{"relazione": item["relazione"], "rel": item["rel"]} for item in bindings]
+
+    return {"results": formatted_results}
+
+
+@query.get("/entityFind", response_model=FindResult)
+def entityFind(rel: str, o: str) -> FindResult:
+    sparql = SPARQLWrapper(SPARQL_ENDPOINT)
+    
+    # Controllo se il prefisso urw è disponibile
+    urw_prefix = config.prefix["urw"]
+    if not urw_prefix:
+        raise HTTPException(status_code=500, detail="Prefix is missing in configuration")
+
+    query=finderTemp(urw_prefix, rel, o)
+
+    try:
+        sparql.setQuery(query)
+        sparql.setReturnFormat(JSON)
+        results = sparql.query().convert()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"SPARQL Query Error: {str(e)}")
+
+    # Trasforma la risposta per Pydantic
+    bindings = results["results"]["bindings"]
+    formatted_results = [{"s": item["s"], "sogg": item["sogg"]} for item in bindings]
+
+    return {"results": formatted_results}

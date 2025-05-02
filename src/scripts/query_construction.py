@@ -80,3 +80,45 @@ def searchTypeEntity(urw_prefix:str, entity_type:str, prefix_type:str) :
 
     """
     return query
+
+def rel(urw_prefix:str, ris:str) :
+    query = f"""
+    PREFIX urw: {urw_prefix}
+    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+ 
+    SELECT DISTINCT ?relazione ?rel WHERE {{
+     {{
+       {ris} ?rel ?o.  
+      ?rel rdfs:label ?relazione.
+      }}
+    UNION {{
+       ?o ?rel {ris}.
+      ?rel rdfs:label ?relazione. 
+      }}
+    }}
+
+    """
+    return query
+
+
+def finderTemp(urw_prefix:str, configEntity:str, o:str):
+
+    # Costruzione della query SPARQL con validazione
+    query = f"""
+    PREFIX urw: {urw_prefix}
+    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    
+    SELECT DISTINCT ?s, ?sogg WHERE {{
+    {{
+      ?s {configEntity} {o}.
+      ?s rdfs:label ?sogg.
+    }}UNION{{
+      {o} {configEntity} ?s.
+      ?s rdfs:label ?sogg.
+    }}
+      
+      
+    }}
+    """
+    return query

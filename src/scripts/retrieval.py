@@ -11,7 +11,7 @@ sentence_model = SentenceTransformer("all-MiniLM-L6-v2")
 class Retriever:
     def __init__(self):
         self.model_name = "numind/NuExtract-tiny-v1.5"
-        self.device = "mps"
+        self.device = "cpu"
         self.model = AutoModelForCausalLM.from_pretrained(self.model_name, torch_dtype=torch.bfloat16, trust_remote_code=True).to(self.device).eval()
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, trust_remote_code=True)
         self.sentence_model = SentenceTransformer("all-MiniLM-L6-v2")
