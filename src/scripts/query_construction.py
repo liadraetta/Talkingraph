@@ -11,22 +11,35 @@ from internal.config import config as config
 SPARQL_ENDPOINT = config.endpoint
 
 
-def searchExactly(label: str, configEntity: str, urw_prefix:str) :
+def searchExactly(label: str,urw_prefix:str, configEntity:str=None ) :
     
     # Costruzione della query SPARQL 
-    query = f"""
-    PREFIX urw: {urw_prefix}
-    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-    
-    SELECT DISTINCT ?name ?titolo WHERE {{
-      ?author {configEntity} ?books.
-      ?books rdfs:label ?titolo.
-      ?author rdfs:label ?name.
+    if configEntity is None:
+      query = f"""
+      PREFIX urw: {urw_prefix}
+      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
       
-      FILTER((?titolo = "{label}") || (?name = "{label}"))
-    }}
-    LIMIT 10
-    """
+      SELECT DISTINCT ?name ?titolo WHERE {{
+        ?author ?rel ?books.
+        ?books rdfs:label ?titolo.
+        ?author rdfs:label ?name.
+        
+        FILTER((?titolo = "{label}") || (?name = "{label}"))
+      }}
+      """
+    else:
+        query = f"""
+      PREFIX urw: {urw_prefix}
+      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      
+      SELECT DISTINCT ?name ?titolo WHERE {{
+        ?author {configEntity} ?books.
+        ?books rdfs:label ?titolo.
+        ?author rdfs:label ?name.
+        
+        FILTER((?titolo = "{label}") || (?name = "{label}"))
+      }}
+      """
     return query
     
 
@@ -81,6 +94,7 @@ def searchTypeEntity(urw_prefix:str, entity_type:str, prefix_type:str) :
     """
     return query
 
+#NOTE: trova le relazioni tra due entità
 def rel(urw_prefix:str, ris:str) :
     query = f"""
     PREFIX urw: {urw_prefix}
@@ -101,7 +115,7 @@ def rel(urw_prefix:str, ris:str) :
     """
     return query
 
-
+# NOTE: LATO FRONTEND serve per trovare l'entità legata da una relazione a o (entità visitata al momento)
 def finderTemp(urw_prefix:str, configEntity:str, o:str):
 
     # Costruzione della query SPARQL con validazione
