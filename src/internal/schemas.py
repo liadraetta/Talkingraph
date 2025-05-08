@@ -65,6 +65,7 @@ class Config(BaseSettings):
     namespace: Namespace
     prefix: Dict[str, str]
     template: str
+    prefixes: str
 
 
 # Models for Information Extraction

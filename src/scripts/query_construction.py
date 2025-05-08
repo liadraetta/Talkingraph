@@ -11,13 +11,12 @@ from internal.config import config as config
 SPARQL_ENDPOINT = config.endpoint
 
 
-def searchExactly(label: str,urw_prefix:str, configEntity:str=None ) :
+def searchExactly(label: str, urw_prefix:str, configEntity:str=None ) :
     
     # Costruzione della query SPARQL 
     if configEntity is None:
       query = f"""
-      PREFIX urw: {urw_prefix}
-      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      {config.prefixes}
       
       SELECT DISTINCT ?name ?titolo WHERE {{
         ?author ?rel ?books.
@@ -29,8 +28,7 @@ def searchExactly(label: str,urw_prefix:str, configEntity:str=None ) :
       """
     else:
         query = f"""
-      PREFIX urw: {urw_prefix}
-      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      {config.prefixes}
       
       SELECT DISTINCT ?name ?titolo WHERE {{
         ?author {configEntity} ?books.
@@ -40,25 +38,39 @@ def searchExactly(label: str,urw_prefix:str, configEntity:str=None ) :
         FILTER((?titolo = "{label}") || (?name = "{label}"))
       }}
       """
+    print(query)
     return query
     
 
-def searchRegex(label: str, configEntity:str, urw_prefix:str) :
+def searchRegex(label: str, urw_prefix:str, configEntity:str=None ) :
     
-    # Costruzione della query SPARQL con validazione
-    query = f"""
-    PREFIX urw: {urw_prefix}
-    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-    
-    SELECT DISTINCT ?name ?titolo WHERE {{
-      ?author {configEntity} ?books.
-      ?books rdfs:label ?titolo.
-      ?author rdfs:label ?name.
+    # Costruzione della query SPARQL
+    if configEntity is None:
+      query = f"""
+      {config.prefixes}
       
-      FILTER(regex(?titolo, "{label}", "i") || regex(?name, "{label}", "i"))
-    }}
-    LIMIT 10
-    """
+      SELECT DISTINCT ?name ?titolo WHERE {{
+        ?author ?rel ?books.
+        ?books rdfs:label ?titolo.
+        ?author rdfs:label ?name.
+        
+          FILTER(regex(?titolo, "{label}", "i") || regex(?name, "{label}", "i"))
+
+      }}
+      """
+    else:
+      query = f"""
+      {config.prefixes}
+      
+      SELECT DISTINCT ?name ?titolo WHERE {{
+        ?author {configEntity} ?books.
+        ?books rdfs:label ?titolo.
+        ?author rdfs:label ?name.
+        
+        FILTER(regex(?titolo, "{label}", "i") || regex(?name, "{label}", "i"))
+      }}
+      """
+      print(query)
     return query
 
 
@@ -66,8 +78,7 @@ def finder(urw_prefix:str, configEntity:str, o:str):
 
     # Costruzione della query SPARQL con validazione
     query = f"""
-    PREFIX urw: {urw_prefix}
-    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    {config.prefixes}
     
     SELECT DISTINCT ?s, ?sogg WHERE {{
       ?s {configEntity} {o}.
@@ -75,16 +86,14 @@ def finder(urw_prefix:str, configEntity:str, o:str):
       
     }}
     """
+    print(query)
     return query
 
-def searchTypeEntity(urw_prefix:str, entity_type:str, prefix_type:str) :
+def searchTypeEntity(urw_prefix:str, entity_type:str) :
 
  # Costruzione della query SPARQL con validazione
     query = f"""
-    PREFIX urw: {urw_prefix}
-    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-    {prefix_type}
+    {config.prefixes}
 
     SELECT DISTINCT ?s, ?name WHERE {{
       ?s  rdf:type {entity_type}.
@@ -92,14 +101,13 @@ def searchTypeEntity(urw_prefix:str, entity_type:str, prefix_type:str) :
     }}
 
     """
+    print(query)
     return query
 
 #NOTE: trova le relazioni tra due entità
 def rel(urw_prefix:str, ris:str) :
     query = f"""
-    PREFIX urw: {urw_prefix}
-    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    {config.prefixes}
  
     SELECT DISTINCT ?relazione ?rel WHERE {{
      {{
@@ -113,15 +121,15 @@ def rel(urw_prefix:str, ris:str) :
     }}
 
     """
+    print(query)
     return query
 
 # NOTE: LATO FRONTEND serve per trovare l'entità legata da una relazione a o (entità visitata al momento)
-def finderTemp(urw_prefix:str, configEntity:str, o:str):
+def explorationRel(urw_prefix:str, configEntity:str, o:str):
 
     # Costruzione della query SPARQL con validazione
     query = f"""
-    PREFIX urw: {urw_prefix}
-    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    {config.prefixes}
     
     SELECT DISTINCT ?s, ?sogg WHERE {{
     {{
@@ -135,4 +143,34 @@ def finderTemp(urw_prefix:str, configEntity:str, o:str):
       
     }}
     """
+    print(query)
+    return query
+
+
+def finder_tmp(o:str,prop:str=None):
+
+    # Costruzione della query SPARQL con validazione
+    if prop is None:
+      query = f"""
+      {config.prefixes}
+      
+      SELECT DISTINCT ?sogg WHERE {{
+      BIND ({o} as ?o) .
+        {{ ?s ?p ?o }} UNION {{ ?o ?p ?s }} .
+        ?s rdfs:label ?sogg.
+        
+      }}
+      """
+    else:
+      query = f"""
+      {config.prefixes}
+      
+      SELECT DISTINCT ?sogg ?p WHERE {{
+      BIND ({o} as ?o) .
+        {{ ?s {prop} ?o}} UNION {{ ?o {prop} ?s }} .
+        ?s rdfs:label ?sogg.
+        
+      }}
+      """
+    print(query)
     return query

@@ -6,7 +6,7 @@ import os,json
 from internal.schemas import SearchResponse, FindResult, SearchResultURI
 from internal.config import config as config 
 from scripts.retrieval import Retriever
-from scripts.query_construction import finder, searchExactly, searchRegex, searchTypeEntity, rel, finderTemp
+from scripts.query_construction import finder, searchExactly, searchRegex, searchTypeEntity, rel, explorationRel, finder_tmp
 
 retriever = Retriever()
 
@@ -39,7 +39,7 @@ def serch_exactly(label: str, numberEntity: int) -> SearchResponse:
     if not urw_prefix:
         raise HTTPException(status_code=500, detail="Prefix is missing in configuration")
 
-    query = searchExactly(label, configEntity, urw_prefix)
+    query = searchExactly(label,urw_prefix, configEntity)
 
     
     try:
@@ -70,7 +70,7 @@ def search_regex(label: str, numberEntity: int) -> SearchResponse:
     if not urw_prefix:
         raise HTTPException(status_code=500, detail="Prefix is missing in configuration")
     
-    query=searchRegex(label, configEntity, urw_prefix)
+    query=searchRegex(label, urw_prefix, configEntity)
 
     try:
         sparql.setQuery(query)
@@ -137,7 +137,7 @@ def search_type(entitytype: str) -> SearchResultURI:
     prefix_type = config.namespace.left[entity_key].prefix
     entity_type = config.namespace.left[entity_key].type  
 
-    query=searchTypeEntity(urw_prefix, entity_type, prefix_type)
+    query=searchTypeEntity(urw_prefix, entity_type)
     
     try:
         sparql.setQuery(query)
@@ -156,6 +156,7 @@ def search_type(entitytype: str) -> SearchResultURI:
 
 @query.get("/graphrag")
 def retrieve(text:str,type:str,k:int):
+    sparql = SPARQLWrapper(SPARQL_ENDPOINT)
     template= eval(config.template)
     my_res = []
     result = retriever.extract_knowledge(template=template,text=text)
@@ -168,8 +169,20 @@ def retrieve(text:str,type:str,k:int):
     
         my_res.extend(linked)
 
-    results = find(1,f"urw:{my_res[0][0]['entity']}")
-    return results
+    query = finder_tmp(f"urw:{my_res[0][0]['entity']}")
+    
+    try:
+        sparql.setQuery(query)
+        sparql.setReturnFormat(JSON)
+        results = sparql.query().convert()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"SPARQL Query Error: {str(e)}")
+
+    # Trasforma la risposta per Pydantic
+    bindings = results["results"]["bindings"]
+    formatted_results = [{"sogg": item["sogg"]} for item in bindings]
+
+    return {"results": formatted_results}
 
 
 @query.get("/rel")
@@ -208,7 +221,7 @@ def entityFind(rel: str, o: str) -> FindResult:
     if not urw_prefix:
         raise HTTPException(status_code=500, detail="Prefix is missing in configuration")
 
-    query=finderTemp(urw_prefix, rel, o)
+    query=explorationRel(urw_prefix, rel, o)
 
     try:
         sparql.setQuery(query)
