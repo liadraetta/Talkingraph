@@ -11,10 +11,10 @@ from internal.config import config as config
 SPARQL_ENDPOINT = config.endpoint
 
 
-def searchExactly(label: str, urw_prefix:str, configEntity:str=None ) :
+def searchExactly(label: str, property:str=None ) :
     
     # Costruzione della query SPARQL 
-    if configEntity is None:
+    if property is None:
       query = f"""
       {config.prefixes}
       
@@ -31,7 +31,7 @@ def searchExactly(label: str, urw_prefix:str, configEntity:str=None ) :
       {config.prefixes}
       
       SELECT DISTINCT ?name ?titolo WHERE {{
-        ?author {configEntity} ?books.
+        ?author {property} ?books.
         ?books rdfs:label ?titolo.
         ?author rdfs:label ?name.
         
@@ -42,10 +42,10 @@ def searchExactly(label: str, urw_prefix:str, configEntity:str=None ) :
     return query
     
 
-def searchRegex(label: str, urw_prefix:str, configEntity:str=None ) :
+def searchRegex(label: str, property:str=None ) :
     
     # Costruzione della query SPARQL
-    if configEntity is None:
+    if property is None:
       query = f"""
       {config.prefixes}
       
@@ -57,20 +57,22 @@ def searchRegex(label: str, urw_prefix:str, configEntity:str=None ) :
           FILTER(regex(?titolo, "{label}", "i") || regex(?name, "{label}", "i"))
 
       }}
+      LIMIT 20
       """
     else:
       query = f"""
       {config.prefixes}
       
       SELECT DISTINCT ?name ?titolo WHERE {{
-        ?author {configEntity} ?books.
+        ?author {property} ?books.
         ?books rdfs:label ?titolo.
         ?author rdfs:label ?name.
         
         FILTER(regex(?titolo, "{label}", "i") || regex(?name, "{label}", "i"))
       }}
+      LIMIT 20
       """
-      print(query)
+    print(query)
     return query
 
 

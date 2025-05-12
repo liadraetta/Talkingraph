@@ -66,6 +66,7 @@ class Config(BaseSettings):
     prefix: Dict[str, str]
     template: str
     prefixes: str
+    properties: List[Dict]
 
 
 # Models for Information Extraction

@@ -1,6 +1,6 @@
 app:
   name: wlkg
-  endpoint: https://kgccc.di.unito.it/sparql/wl-kg
+  endpoint: https://fuseki.hfpo-kfpo.di.unito.it/wlkg/query
   namespace: 
     left:
       entitytype1: 
@@ -27,3 +27,14 @@ app:
     PREFIX prov: <http://www.w3.org/ns/prov#>
     PREFIX urb: <https://purl.archive.org/urbooks#>
   template: "{'QuestionFocus': '', 'entities': {'work': [],'person': [], 'subject':[], 'publisher':[]}}"
+  properties:
+    - prov:wasAttributedTo : wrote
+    - urw:wasPublishedBy : has publisher
+    - urw:publishingLanguage : publishing language
+    - urw:citizenship: citizen of
+    - urw:yearOfBirth: birth year
+    - urw:countryOfBirth: country of birth
+    - urw:authorTopic: has topic
+    - urb:workTopic: has topic
+    - urw:wasPublishedWhere: publishing place
+    - urw:wasPublishedWhen: publishing year

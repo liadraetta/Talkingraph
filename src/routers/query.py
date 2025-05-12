@@ -23,10 +23,10 @@ SPARQL_ENDPOINT = config.endpoint
 
 
 @query.get("/search_exactly", response_model=SearchResponse)
-def serch_exactly(label: str, numberEntity: int) -> SearchResponse:
+def serch_exactly(label: str, property: str=None) -> SearchResponse:
     sparql = SPARQLWrapper(SPARQL_ENDPOINT)
     
-    entity_key = f"entità{numberEntity}"  # Nome chiave da cercare
+    '''entity_key = f"entità{property}"  # Nome chiave da cercare
     
     # Controllo se esiste l'entità richiesta
     if entity_key not in config.namespace.right:
@@ -37,9 +37,9 @@ def serch_exactly(label: str, numberEntity: int) -> SearchResponse:
     # Controllo se il prefisso urw è disponibile
     urw_prefix = config.prefix["urw"]
     if not urw_prefix:
-        raise HTTPException(status_code=500, detail="Prefix is missing in configuration")
+        raise HTTPException(status_code=500, detail="Prefix is missing in configuration")'''
 
-    query = searchExactly(label,urw_prefix, configEntity)
+    query = searchExactly(label,property)
 
     
     try:
@@ -54,23 +54,24 @@ def serch_exactly(label: str, numberEntity: int) -> SearchResponse:
 
 
 @query.get("/search_regex", response_model=SearchResponse)
-def search_regex(label: str, numberEntity: int) -> SearchResponse:
+def search_regex(label: str, property: str=None) -> SearchResponse:
     sparql = SPARQLWrapper(SPARQL_ENDPOINT)
     
-    entity_key = f"entità{numberEntity}"  # Nome chiave da cercare
+    '''entity_key = f"entità{numberEntity}"  # Nome chiave da cercare
     
     # Controllo se esiste l'entità richiesta
-    if entity_key not in config.namespace.right:
-        raise HTTPException(status_code=400, detail=f"Entity {entity_key} not found in config")
+    if entity_key is not None:
+        if entity_key not in config.namespace.right:
+            raise HTTPException(status_code=400, detail=f"Entity {entity_key} not found in config")
 
-    configEntity = config.namespace.right[entity_key].rel  
+        configEntity = config.namespace.right[entity_key].rel  
 
     # Controllo se il prefisso urw è disponibile
     urw_prefix = config.prefix["urw"]
     if not urw_prefix:
-        raise HTTPException(status_code=500, detail="Prefix is missing in configuration")
+        raise HTTPException(status_code=500, detail="Prefix is missing in configuration")'''
     
-    query=searchRegex(label, urw_prefix, configEntity)
+    query=searchRegex(label, property)
 
     try:
         sparql.setQuery(query)
