@@ -64,3 +64,12 @@ class Config(BaseSettings):
     endpoint: str
     namespace: Namespace
     prefix: Dict[str, str]
+    template: str
+    prefixes: str
+
+
+# Models for Information Extraction
+
+class Template(BaseModel):
+    prompt: str
+    template: str
